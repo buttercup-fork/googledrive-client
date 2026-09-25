@@ -1,5 +1,11 @@
 # Google Drive Client changelog
 
+## Unreleased (codekunde fork)
+
+ * **Bugfix**: `putFileContents` mangled non-ASCII file names (eg. `Tresor ü.bcup`) - the upload body is now UTF-8 encoded
+ * **Bugfix**: `putFileContents` sent a `Content-Length` smaller than the body (it didn't count the base64 encoding), which broke uploads with Node's built-in `fetch`
+ * `prepare` script, so installing from a git URL builds `dist/`
+
 ## v2.3.0
 _2023-11-11_
 

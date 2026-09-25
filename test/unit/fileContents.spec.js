@@ -112,4 +112,55 @@ describe("fileContents", function () {
             });
         });
     });
+
+    describe("putFileContents", function () {
+        beforeEach(function () {
+            this.requestSpy = sinon.stub().returns(
+                Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ id: "new-id" }),
+                    status: 200,
+                    statusText: "OK"
+                })
+            );
+            this.client = new GoogleDriveClient(FAKE_TOKEN);
+            this.client.patcher.patch("request", this.requestSpy);
+            this.getBody = () =>
+                Buffer.from(this.requestSpy.firstCall.args[0].body).toString("utf8");
+        });
+
+        it("returns the file ID", function () {
+            return this.client.putFileContents("data", null, "vault.bcup").then(id => {
+                expect(id).to.equal("new-id");
+            });
+        });
+
+        it("keeps non-ASCII file names intact", function () {
+            return this.client.putFileContents("data", null, "Mein Tresor ü 日本.bcup").then(() => {
+                expect(this.getBody()).to.contain('"name":"Mein Tresor ü 日本.bcup"');
+            });
+        });
+
+        it("sets Content-Length to the body's byte length", function () {
+            return this.client.putFileContents("x".repeat(3000), null, "Tresor ü.bcup").then(() => {
+                const { body, headers } = this.requestSpy.firstCall.args[0];
+                expect(headers["Content-Length"]).to.equal(String(body.byteLength));
+            });
+        });
+
+        it("sends the contents base64 encoded", function () {
+            return this.client.putFileContents("héllo vault", "abc").then(() => {
+                const encoded = Buffer.from("héllo vault", "utf8").toString("base64");
+                expect(this.getBody()).to.contain(encoded);
+            });
+        });
+
+        it("updates an existing file by ID", function () {
+            return this.client.putFileContents("data", "abc").then(() => {
+                const { method, url } = this.requestSpy.firstCall.args[0];
+                expect(method).to.equal("PATCH");
+                expect(url).to.match(/\/files\/abc$/);
+            });
+        });
+    });
 });

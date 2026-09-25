@@ -54,19 +54,13 @@ export async function putFileContents(options: InternalPutFileContentsOptions): 
         NEW_LINE
     ].join("");
     const postDataEnd = [NEW_LINE, BOUNDARY_MARK, boundary, BOUNDARY_MARK, NEW_LINE].join("");
-    const size =
-        postDataMeta.length +
-        metadata.length +
-        postDataFile.length +
-        contents.length +
-        postDataEnd.length;
-    const data = [];
-    [postDataMeta, metadata, postDataFile, encodeBase64(contents), postDataEnd].forEach(item => {
-        for (let i = 0; i < item.length; i += 1) {
-            data.push(item.charCodeAt(i) & 0xff);
-        }
-    });
-    const payload = new Uint8Array(data).buffer;
+    // Encoded as UTF-8 so non-ASCII file names survive, and sized from the
+    // final bytes (the file part is base64, longer than the raw contents)
+    const bytes = new TextEncoder().encode(
+        [postDataMeta, metadata, postDataFile, encodeBase64(contents), postDataEnd].join("")
+    );
+    const payload = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    const size = payload.byteLength;
     const config: RequestConfig = {
         url,
         method,
