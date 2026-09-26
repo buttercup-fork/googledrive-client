@@ -1,7 +1,6 @@
 import sinon from "sinon";
 import { expect } from "chai";
 import { Layerr } from "layerr";
-import { Headers } from "fetch-headers";
 import { GoogleDriveClient } from "../../dist/index.js";
 
 const FAKE_TOKEN = "aaaaabbbbbbccccccddddddeeeeee";

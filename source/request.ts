@@ -1,4 +1,3 @@
-import { Response, fetch } from "@buttercup/fetch";
 import URL from "url-parse";
 import { Layerr } from "layerr";
 import { Headers } from "./types.js";
