@@ -2,6 +2,8 @@
 
 ## Unreleased (codekunde fork)
 
+ * **Breaking**: requires NodeJS 18+. Uses the built-in `fetch` on every platform; `@buttercup/fetch` and `node-fetch` (and its deprecated `node-domexception`) are no longer dependencies
+ * Update dependencies: `layerr` 3; dev tooling (TypeScript 6, mocha 12, chai 6, sinon 22, c8 12, husky 9, lint-staged 17, rimraf 6), `npm audit` clean. Tests use the built-in `Headers` (`fetch-headers` dropped)
  * **Bugfix**: `putFileContents` mangled non-ASCII file names (eg. `Tresor ü.bcup`) - the upload body is now UTF-8 encoded
  * **Bugfix**: `putFileContents` sent a `Content-Length` smaller than the body (it didn't count the base64 encoding), which broke uploads with Node's built-in `fetch`
  * `prepare` script, so installing from a git URL builds `dist/`

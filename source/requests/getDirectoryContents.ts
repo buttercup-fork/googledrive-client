@@ -1,5 +1,4 @@
 import { HotPatcher } from "hot-patcher";
-import { Response } from "@buttercup/fetch";
 import { handleBadResponse, RequestConfig } from "../request.js";
 import { MIME_FOLDER } from "../symbols.js";
 import { FileItem, FileTreeNode, formulateTree } from "../util/directoryContents.js";

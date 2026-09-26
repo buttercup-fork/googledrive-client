@@ -1,6 +1,5 @@
 import { HotPatcher } from "hot-patcher";
 import { Layerr } from "layerr";
-import { Response } from "@buttercup/fetch";
 import { handleBadResponse, RequestConfig } from "../request.js";
 import { MIME_FOLDER, URL_CREATE_DIRECTORY } from "../symbols.js";
 
