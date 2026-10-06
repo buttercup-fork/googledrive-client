@@ -19,38 +19,41 @@ export interface FileTreeNode {
 
 export function formulateTree(files: FileItem[]): FileTreeNode {
     // 1st pass: Collect all IDs
-    const ids = files.map(file => file.id);
+    const ids = new Set(files.map(file => file.id));
     // 2nd pass: Collect root IDs
-    const rootIDs = [];
+    const rootIDs = new Set<string>();
     files.forEach(file => {
         file.parents.forEach(parentID => {
-            if (ids.indexOf(parentID) === -1 && rootIDs.indexOf(parentID) === -1) {
+            if (!ids.has(parentID)) {
                 // ID is not available in the results, so assume it's root
-                rootIDs.push(parentID);
+                rootIDs.add(parentID);
+            }
+        });
+    });
+    // 3rd pass: Group items by parent, keeping the order of the results
+    const rootItems: Array<FileItem> = [];
+    const itemsByParent = new Map<string, Array<FileItem>>();
+    files.forEach(file => {
+        if (file.parents.length === 0 || file.parents.some(parentID => rootIDs.has(parentID))) {
+            rootItems.push(file);
+        }
+        new Set(file.parents).forEach(parentID => {
+            const siblings = itemsByParent.get(parentID);
+            if (siblings) {
+                siblings.push(file);
+            } else {
+                itemsByParent.set(parentID, [file]);
             }
         });
     });
     // Level creation
-    const getLevel = (item?: FileItem): FileTreeNode => ({
+    const getLevel = (item: FileItem | null, items: Array<FileItem>): FileTreeNode => ({
         id: item ? item.id : null,
         filename: item ? item.filename : null,
-        files: !item
-            ? files.filter(
-                  file =>
-                      file.type === "file" &&
-                      (file.parents.length === 0 ||
-                          file.parents.some(parentID => rootIDs.indexOf(parentID) >= 0))
-              )
-            : files.filter(file => file.type === "file" && file.parents.indexOf(item.id) >= 0),
-        children: (!item
-            ? files.filter(
-                  file =>
-                      file.type === "directory" &&
-                      (file.parents.length === 0 ||
-                          file.parents.some(parentID => rootIDs.indexOf(parentID) >= 0))
-              )
-            : files.filter(file => file.type === "directory" && file.parents.indexOf(item.id) >= 0)
-        ).map(child => getLevel(child))
+        files: items.filter(file => file.type === "file"),
+        children: items
+            .filter(file => file.type === "directory")
+            .map(child => getLevel(child, itemsByParent.get(child.id) || []))
     });
-    return getLevel();
+    return getLevel(null, rootItems);
 }
