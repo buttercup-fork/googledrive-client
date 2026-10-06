@@ -125,25 +125,33 @@ export async function mapDirectoryContents(
     } else {
         contents = context[CACHED_DIR_RESULTS_KEY].cachedContents;
     }
-    const getDirPath = (
-        dirContents: Array<FileItem>,
-        itemID: string,
-        items: Array<string> = []
-    ): Array<string> => {
-        const item = dirContents.find(item => item.id === itemID);
-        const [parentID] = item.parents;
-        const parentItem = dirContents.find(item => item.id === parentID);
-        if (parentItem) {
-            return getDirPath(dirContents, parentID, [parentItem.filename, ...items]);
+    const itemsByID = new Map<string, FileItem>();
+    contents.forEach(item => {
+        if (!itemsByID.has(item.id)) {
+            itemsByID.set(item.id, item);
         }
-        return items;
+    });
+    // Folder names from the top down to the item's (first) parent, cached per folder
+    const dirNames = new Map<string, Array<string>>();
+    const getDirNames = (itemID: string): Array<string> => {
+        const [parentID] = itemsByID.get(itemID).parents;
+        const parentItem = itemsByID.get(parentID);
+        if (!parentItem) {
+            return [];
+        }
+        let names = dirNames.get(parentID);
+        if (!names) {
+            names = [...getDirNames(parentID), parentItem.filename];
+            dirNames.set(parentID, names);
+        }
+        return names;
     };
     const pathsMatch = (pathA: string, pathB: string): boolean =>
         pathA.replace(/\/+$/, "") === pathB.replace(/\/+$/, "");
     return contents
         .map(item => ({
             ...item,
-            dirPath: `/${getDirPath(contents, item.id).join("/")}`
+            dirPath: `/${getDirNames(item.id).join("/")}`
         }))
         .filter(item => pathsMatch(item.dirPath, path));
 }
