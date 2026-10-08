@@ -1,7 +1,7 @@
 # Google Drive Client
 > Client for making basic Google Drive requests
 
-![build status](https://github.com/buttercup/googledrive-client/actions/workflows/test.yml/badge.svg) [![npm version](https://badge.fury.io/js/%40buttercup%2Fgoogledrive-client.svg)](https://www.npmjs.com/package/@buttercup/googledrive-client)
+![build status](https://github.com/buttercup-fork/googledrive-client/actions/workflows/test.yml/badge.svg)
 
 ## About
 
@@ -12,7 +12,7 @@ This library allows for performing basic actions against Google's RESTful Drive 
 Install the client by running the following:
 
 ```shell
-npm install @buttercup/googledrive-client
+npm install github:buttercup-fork/googledrive-client
 ```
 
 _The latest version (v2) requires an [ESM](https://nodejs.org/api/esm.html) environment to run. It is not available to standard CommonJS projects._

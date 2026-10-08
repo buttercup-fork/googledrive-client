@@ -20,7 +20,7 @@
     "dist/**/*"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "lint-staged": {
     "{source,test}/**/*.{js,ts}": [
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/buttercup/googledrive-client.git"
+    "url": "git+https://github.com/buttercup-fork/googledrive-client.git"
   },
   "keywords": [
     "google",
