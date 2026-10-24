@@ -106,4 +106,120 @@ describe("Review fixes", function () {
             expect(files.map(file => file.id)).to.deep.equal(["a"]);
         });
     });
+
+    describe("B-638: requests time out", function () {
+        beforeEach(function () {
+            this.originalFetch = globalThis.fetch;
+            this.calls = [];
+            // A server that never answers: the promise only ends on abort
+            globalThis.fetch = (url, options = {}) =>
+                new Promise((resolve, reject) => {
+                    this.calls.push({ url, options });
+                    if (options.signal) {
+                        options.signal.addEventListener("abort", () =>
+                            reject(new Error("aborted"))
+                        );
+                    }
+                });
+        });
+
+        afterEach(function () {
+            globalThis.fetch = this.originalFetch;
+        });
+
+        it("aborts a listing after `timeout`", async function () {
+            const client = new GoogleDriveClient(TOKEN, { timeout: 20, contentTimeout: 60000 });
+            const started = Date.now();
+            const error = await captureError(() => client.getDirectoryContents(false));
+            expect(error).to.be.an.instanceOf(Error);
+            expect(error.message).to.match(/aborted/);
+            expect(Date.now() - started).to.be.below(2000);
+        });
+
+        it("aborts a download after `contentTimeout`", async function () {
+            const client = new GoogleDriveClient(TOKEN, { timeout: 60000, contentTimeout: 20 });
+            const error = await captureError(() => client.getFileContents("abc"));
+            expect(error).to.be.an.instanceOf(Error);
+            expect(error.message).to.match(/aborted/);
+        });
+
+        it("aborts an upload after `contentTimeout`", async function () {
+            const client = new GoogleDriveClient(TOKEN, { timeout: 60000, contentTimeout: 20 });
+            const error = await captureError(() => client.putFileContents("data", "abc"));
+            expect(error).to.be.an.instanceOf(Error);
+            expect(error.message).to.match(/aborted/);
+        });
+
+        [
+            [
+                "attachment download",
+                {
+                    url: "https://www.googleapis.com/drive/v3/files/abc",
+                    query: { alt: "media", supportsAllDrives: "true" }
+                }
+            ],
+            [
+                "attachment upload",
+                {
+                    url: "https://www.googleapis.com/upload/drive/v3/files/abc",
+                    query: { uploadType: "media", supportsAllDrives: "true" }
+                }
+            ]
+        ].forEach(([name, partial]) => {
+            it(`applies the content limit to core's ${name} through the patcher`, async function () {
+                const client = new GoogleDriveClient(TOKEN, { timeout: 60000, contentTimeout: 20 });
+                const error = await captureError(() =>
+                    client.patcher.execute("request", { method: "GET", headers: {}, ...partial })
+                );
+                expect(error).to.be.an.instanceOf(Error);
+                expect(error.message).to.match(/aborted/);
+            });
+        });
+
+        it("defaults to 60 seconds for metadata and 10 minutes for content", async function () {
+            const clock = sinon.useFakeTimers();
+            try {
+                const client = new GoogleDriveClient(TOKEN);
+                const listing = captureError(() => client.getDirectoryContents(false));
+                const download = captureError(() => client.getFileContents("abc"));
+                await clock.tickAsync(0);
+                expect(this.calls).to.have.lengthOf(2);
+                const [listingSignal, downloadSignal] = this.calls.map(call => call.options.signal);
+                expect(listingSignal).to.be.an.instanceOf(AbortSignal);
+                expect(downloadSignal).to.be.an.instanceOf(AbortSignal);
+                await clock.tickAsync(59999);
+                expect(listingSignal.aborted).to.equal(false);
+                await clock.tickAsync(1);
+                expect(listingSignal.aborted).to.equal(true);
+                expect((await listing).message).to.match(/aborted/);
+                await clock.tickAsync(10 * 60 * 1000 - 60000 - 1);
+                expect(downloadSignal.aborted).to.equal(false);
+                await clock.tickAsync(1);
+                expect(downloadSignal.aborted).to.equal(true);
+                expect((await download).message).to.match(/aborted/);
+            } finally {
+                clock.restore();
+            }
+        });
+
+        it("sends no signal when both limits are 0", async function () {
+            const client = new GoogleDriveClient(TOKEN, { timeout: 0, contentTimeout: 0 });
+            client.getDirectoryContents(false).catch(() => {});
+            client.getFileContents("abc").catch(() => {});
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(this.calls).to.have.lengthOf(2);
+            this.calls.forEach(call => expect(call.options.signal).to.equal(undefined));
+        });
+
+        it("clears the timer once the response arrives", async function () {
+            globalThis.fetch = async (url, options) => {
+                this.calls.push({ url, options });
+                return okResponse({ files: [] });
+            };
+            const client = new GoogleDriveClient(TOKEN, { timeout: 20 });
+            await client.getDirectoryContents(false);
+            await new Promise(resolve => setTimeout(resolve, 60));
+            expect(this.calls[0].options.signal.aborted).to.equal(false);
+        });
+    });
 });

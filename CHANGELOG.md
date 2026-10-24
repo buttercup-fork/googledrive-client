@@ -9,6 +9,7 @@
  * `prepare` script, so installing from a git URL builds `dist/`
  * File IDs are encoded as one URL path segment, and an empty ID, `.` and `..` are refused (`ERR_INVALID_FILE_ID`), so an ID can't send the token to another path (B-636)
  * Listing asks the server for untrashed items only (`q=trashed = false`) instead of downloading trashed ones and dropping them (B-637)
+ * Requests time out: uploads and downloads after 10 minutes (`contentTimeout`), every other request after 60 seconds (`timeout`); `0` turns a limit off. Requests other code makes through the client's `request` hook get the same limits (B-638)
  * [#4](https://github.com/buttercup/googledrive-client/issues/4): Listing a large drive is much faster: `getDirectoryContents` and `mapDirectoryContents` no longer search the whole listing for every item (a folder of a 30,000 item drive: ~7 s -> ~60 ms of processing, the download is unchanged)
 
 ## v2.3.0
