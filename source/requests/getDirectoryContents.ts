@@ -42,6 +42,8 @@ export async function getDirectoryContents(
             corpora: "allDrives",
             includeItemsFromAllDrives: "true",
             pageSize: "1000",
+            // Leave trashed items out on the server, not after downloading them
+            q: "trashed = false",
             spaces: "drive",
             supportsAllDrives: "true",
             fields: "files(id,name,mimeType,createdTime,modifiedTime,shared,size,parents,trashed),nextPageToken"

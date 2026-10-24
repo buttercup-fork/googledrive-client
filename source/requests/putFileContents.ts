@@ -1,6 +1,7 @@
 import { HotPatcher } from "hot-patcher";
 import { handleBadResponse, RequestConfig } from "../request.js";
 import { encodeBase64 } from "../util/encoding.js";
+import { fileIDPathSegment } from "../util/fileID.js";
 
 export interface InternalPutFileContentsOptions {
     contents: string;
@@ -21,7 +22,7 @@ export async function putFileContents(options: InternalPutFileContentsOptions): 
     const { contents, id, name, parentID, patcher, token } = options;
     const boundary = `BCUP_DRV_UPL_${Math.floor(Math.random() * 1000000)}`;
     const url = id
-        ? `https://www.googleapis.com/upload/drive/v3/files/${id}`
+        ? `https://www.googleapis.com/upload/drive/v3/files/${fileIDPathSegment(id)}`
         : "https://www.googleapis.com/upload/drive/v3/files";
     const method = id ? "PATCH" : "POST";
     const rawMetadata: Record<string, string | Array<string>> = {};

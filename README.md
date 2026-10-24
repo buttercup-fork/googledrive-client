@@ -32,6 +32,23 @@ client.getDirectoryContents(/* tree: */ true /* (default) */).then(tree => {
 client.getDirectoryContents();
 ```
 
+Trashed items are left out of the listing.
+
+File IDs are sent as a single URL path segment: an empty ID and the IDs `.` and `..` are refused with the Layerr info code `ERR_INVALID_FILE_ID` (for `putFileContents`, an empty ID still means "create a new file").
+
+### Timeouts
+
+Requests are aborted if no response arrives in time: uploads and downloads after 10 minutes, every other request after 60 seconds. The limits cover sending the request and waiting for the response, not reading its body. Set them in milliseconds, or `0` for no limit:
+
+```typescript
+const client = new GoogleDriveClient(myToken, {
+    contentTimeout: 5 * 60 * 1000,
+    timeout: 30 * 1000
+});
+```
+
+An aborted request rejects with the `fetch` abort error, not a `Layerr`.
+
 ### Token expiration or invalid credentials
 
 This library uses [`Layerr`](https://github.com/perry-mitchell/layerr) to pass extra error information around, such as when authentication fails while making a request. This makes it easier for downstream libraries to handle such authorisation failures, perhaps by requesting a new token.

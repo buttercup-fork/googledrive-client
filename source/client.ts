@@ -1,5 +1,7 @@
 import { HotPatcher } from "hot-patcher";
-import { request } from "./request.js";
+import { isContentRequest, request, RequestConfig } from "./request.js";
+import { CONTENT_TIMEOUT, REQUEST_TIMEOUT } from "./symbols.js";
+import { GoogleDriveClientOptions } from "./types.js";
 import { createDirectory } from "./requests/createDirectory.js";
 import { deleteFile } from "./requests/deleteFile.js";
 import {
@@ -16,11 +18,19 @@ export class GoogleDriveClient {
     private __cache: Record<string, any>;
     private __token: string;
 
-    constructor(token: string) {
+    constructor(token: string, options: GoogleDriveClientOptions = {}) {
+        const { contentTimeout = CONTENT_TIMEOUT, timeout = REQUEST_TIMEOUT } = options;
         this.__cache = {};
         this.__token = token;
         this.patcher = new HotPatcher();
-        this.patcher.patch("request", request);
+        // Requests made through the patcher by other code (core's attachments)
+        // get the same limits
+        this.patcher.patch("request", (config: RequestConfig) =>
+            request({
+                timeout: isContentRequest(config) ? contentTimeout : timeout,
+                ...config
+            })
+        );
     }
 
     async createDirectory(name: string, parentID?: string): Promise<string> {
