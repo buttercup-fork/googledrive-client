@@ -32,6 +32,8 @@ client.getDirectoryContents(/* tree: */ true /* (default) */).then(tree => {
 client.getDirectoryContents();
 ```
 
+File IDs are sent as a single URL path segment: an empty ID and the IDs `.` and `..` are refused with the Layerr info code `ERR_INVALID_FILE_ID` (for `putFileContents`, an empty ID still means "create a new file").
+
 ### Token expiration or invalid credentials
 
 This library uses [`Layerr`](https://github.com/perry-mitchell/layerr) to pass extra error information around, such as when authentication fails while making a request. This makes it easier for downstream libraries to handle such authorisation failures, perhaps by requesting a new token.

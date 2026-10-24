@@ -1,5 +1,6 @@
 import { HotPatcher } from "hot-patcher";
 import { handleBadResponse, RequestConfig } from "../request.js";
+import { fileIDPathSegment } from "../util/fileID.js";
 
 export interface InternalGetFileContentsOptions {
     id: string;
@@ -10,7 +11,7 @@ export interface InternalGetFileContentsOptions {
 export async function getFileContents(options: InternalGetFileContentsOptions): Promise<string> {
     const { patcher } = options;
     const config: RequestConfig = {
-        url: `https://www.googleapis.com/drive/v3/files/${options.id}`,
+        url: `https://www.googleapis.com/drive/v3/files/${fileIDPathSegment(options.id)}`,
         method: "GET",
         query: {
             alt: "media",
