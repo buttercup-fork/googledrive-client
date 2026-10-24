@@ -81,4 +81,29 @@ describe("Review fixes", function () {
             });
         });
     });
+
+    describe("B-637: listing leaves trashed items out on the server", function () {
+        it("asks for untrashed items only", async function () {
+            const request = sinon.stub().callsFake(async () =>
+                okResponse({
+                    files: [
+                        { id: "a", name: "a.bcup", mimeType: "text/plain", parents: ["root"] },
+                        {
+                            id: "b",
+                            name: "b.bcup",
+                            mimeType: "text/plain",
+                            parents: ["root"],
+                            trashed: true
+                        }
+                    ]
+                })
+            );
+            const client = new GoogleDriveClient(TOKEN);
+            client.patcher.patch("request", request);
+            const files = await client.getDirectoryContents(false);
+            expect(request.firstCall.args[0].query).to.have.property("q", "trashed = false");
+            // The client-side filter stays as a backstop
+            expect(files.map(file => file.id)).to.deep.equal(["a"]);
+        });
+    });
 });

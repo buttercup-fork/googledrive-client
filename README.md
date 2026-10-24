@@ -32,6 +32,8 @@ client.getDirectoryContents(/* tree: */ true /* (default) */).then(tree => {
 client.getDirectoryContents();
 ```
 
+Trashed items are left out of the listing.
+
 File IDs are sent as a single URL path segment: an empty ID and the IDs `.` and `..` are refused with the Layerr info code `ERR_INVALID_FILE_ID` (for `putFileContents`, an empty ID still means "create a new file").
 
 ### Token expiration or invalid credentials
