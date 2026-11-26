@@ -12,15 +12,17 @@ This library allows for performing basic actions against Google's RESTful Drive 
 Install the client by running the following:
 
 ```shell
-npm install github:buttercup-fork/googledrive-client
+npm install @buttercup-fork/googledrive-client
 ```
 
-_The latest version (v2) requires an [ESM](https://nodejs.org/api/esm.html) environment to run. It is not available to standard CommonJS projects._
+The fork is published on npm as `@buttercup-fork/googledrive-client` (`@buttercup/googledrive-client` on npm is upstream's 2.3.0).
+
+_Version 2 and later require an [ESM](https://nodejs.org/api/esm.html) environment to run. It is not available to standard CommonJS projects._
 
 The library exports a factory which can be used to create client adapters. The factory takes a Google Drive OAuth token.
 
 ```typescript
-import { GoogleDriveClient } from "@buttercup/googledrive-client";
+import { GoogleDriveClient } from "@buttercup-fork/googledrive-client";
 
 const client = new GoogleDriveClient(myToken);
 
@@ -67,7 +69,7 @@ client.getDirectoryContents().catch(err => {
 This library supports fetching directory contents by using a path, for a more traditional field. This method is **not recommended** for all use cases as it doesn't support items in the same level with the _same name_. Consider it experimental.
 
 ```typescript
-import { GoogleDriveClient } from "@buttercup/googledrive-client";
+import { GoogleDriveClient } from "@buttercup-fork/googledrive-client";
 
 const client = new GoogleDriveClient(myToken);
 
