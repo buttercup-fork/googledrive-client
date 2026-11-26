@@ -1,7 +1,9 @@
 # Google Drive Client changelog
 
-## Unreleased (codekunde fork)
+## v3.0.0
+_2026-11-26_ (CodeKunde fork)
 
+ * **New package name:** `@buttercup-fork/googledrive-client` on npm (import from it instead of `@buttercup/googledrive-client`), staged from GitHub Actions through trusted publishing with provenance (`publish.yml`, started by hand); the package name `@buttercup/googledrive-client` stays upstream's
  * **Breaking**: requires NodeJS 22+; CI runs on branch pushes only (Node 22 and 24). Uses the built-in `fetch` on every platform; `@buttercup/fetch` and `node-fetch` (and its deprecated `node-domexception`) are no longer dependencies
  * Update dependencies: `layerr` 3; dev tooling (TypeScript 6, mocha 12, chai 6, sinon 22, c8 12, husky 9, lint-staged 17, rimraf 6), `npm audit` clean. Tests use the built-in `Headers` (`fetch-headers` dropped)
  * **Bugfix**: `putFileContents` mangled non-ASCII file names (eg. `Tresor ü.bcup`) - the upload body is now UTF-8 encoded
